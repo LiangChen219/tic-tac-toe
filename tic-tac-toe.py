@@ -95,24 +95,35 @@ def findWinner():
     for triplet in triplets:
         if all(item in circleNumLocation for item in triplet):
             winner = "circle"
-            return winner
+            return (winner, triplet)
         elif all(item in crossNumLocation for item in triplet):
             winner = "cross"
-            return winner
-    return False
+            return (winner, triplet)
+    return False, False
 
 
 #text surface that displays winner
-def displayWinnerStatus(winner):
+def displayWinnerStatus(winner, triplet):
     text_font = pygame.font.Font(None, 50)
     if winner in ['circle', 'cross']:
-        text_surface = text_font.render(f"{winner} won!", True, 'Red')
+        text_surface = text_font.render(f"{winner} won!", True, 'Gold')
         text_rect = text_surface.get_rect(center=(450, 50))
         screen.blit(text_surface, text_rect)
+
+        #draw winning line
+        for coord, num in CoordsToLabel.items():
+            if num == triplet[0]:
+                start = coord
+            if num == triplet[2]:
+                end = coord
+        pygame.draw.line(screen, "Gold", start, end, width=10)
     else:
         text_surface = text_font.render("Its a draw!", True, 'Red')
         text_rect = text_surface.get_rect(center=(450, 50))
         screen.blit(text_surface, text_rect)
+
+    #draws the line
+        
     
         
 #clicks is the times a symbol is added (max=9)
@@ -141,11 +152,12 @@ while True:
                         turn = "circle"
                           
     showMarker()
-    winner = findWinner()
+    winner, triplet = findWinner()
+    #item = [1, 5, 9]
     #check if game over
     if clicks > 2:
         if winner != False or clicks == 9:
-            displayWinnerStatus(winner)
+            displayWinnerStatus(winner, triplet)
             
     pygame.display.update()
     clock.tick(60)
