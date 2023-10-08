@@ -8,6 +8,8 @@ pygame.display.set_caption('tic-tac-toe!')
 clock = pygame.time.Clock()
 
 turn = "circle"
+circleWon = int()
+crossWon = int()
 
 #list of cross and circle locations
 crossLocation = list()
@@ -103,61 +105,82 @@ def findWinner():
 
 
 #text surface that displays winner
-def displayWinnerStatus(winner, triplet):
+def displayWinnerStatus(winner):
+    global circleWon, crossWon
     text_font = pygame.font.Font(None, 50)
     if winner in ['circle', 'cross']:
         text_surface = text_font.render(f"{winner} won!", True, 'Gold')
         text_rect = text_surface.get_rect(center=(450, 50))
         screen.blit(text_surface, text_rect)
-
-        #draw winning line
-        for coord, num in CoordsToLabel.items():
-            if num == triplet[0]:
-                start = coord
-            if num == triplet[2]:
-                end = coord
-        pygame.draw.line(screen, "Gold", start, end, width=10)
     else:
-        text_surface = text_font.render("Its a draw!", True, 'Red')
+        text_surface = text_font.render("Its a draw!", True, 'Gold')
         text_rect = text_surface.get_rect(center=(450, 50))
         screen.blit(text_surface, text_rect)
+    message_surface = text_font.render("Press RETURN to play Again", True, "Black")
+    score_surface = text_font.render(f"Circle Won:{circleWon}, Cross Won:{crossWon}", True, "Green")
+    screen.blit(message_surface, (0, 150))
+    screen.blit(score_surface, (0, 200))
 
-    #draws the line
-        
-    
-        
-#clicks is the times a symbol is added (max=9)
+def drawLine(triplet):
+    #draw winning line
+    for coord, num in CoordsToLabel.items():
+        if num == triplet[0]:
+            start = coord
+        if num == triplet[2]:
+            end = coord
+    pygame.draw.line(screen, "Gold", start, end, width=10)
+   
+#clicks is the amount of symbol added (max=9)
 clicks = 0
+gameActive = True
 while True:
-    showBoard(board_surface)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                mouse_pos = pygame.mouse.get_pos()
-                coord = getPos(mouse_pos)
-                #if coordinate is already clicked...
-                if coord in circleLocation or coord in crossLocation:
-                    print("invalid location")
-                else:
-                    #appends the coord to the list, and switches the turn
-                    clicks += 1
-                    if turn == "circle":
-                        circleLocation.append(coord)
-                        turn = "cross"
-                    elif turn == "cross":
-                        crossLocation.append(coord)
-                        turn = "circle"
-                          
-    showMarker()
-    winner, triplet = findWinner()
-    #item = [1, 5, 9]
-    #check if game over
-    if clicks > 2:
-        if winner != False or clicks == 9:
-            displayWinnerStatus(winner, triplet)
+        if gameActive:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+                    coord = getPos(mouse_pos)
+                    #if coordinate is already clicked...
+                    if coord in circleLocation or coord in crossLocation:
+                        print("invalid location")
+                    else:
+                        #appends the coord to the list, and switches the turn
+                        clicks += 1
+                        if turn == "circle":
+                            circleLocation.append(coord)
+                            turn = "cross"
+                        elif turn == "cross":
+                            crossLocation.append(coord)
+                            turn = "circle"
+        else:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    gameActive = True
+
+    if gameActive:
+        showBoard(board_surface)                      
+        showMarker()
+        winner, triplet = findWinner()
+        if clicks > 2:
+            if winner != False or clicks == 9:
+                if winner != False:
+                    if winner == "circle": circleWon += 1
+                    if winner == "cross": crossWon += 1
+                    drawLine(triplet)
+                pygame.time.delay(500)
+                gameActive = False
+                
+    else:
+        screen.fill("Blue")
+        displayWinnerStatus(winner)
+        circleLocation.clear()
+        crossLocation.clear()
+        clicks = 0
+        
+        
             
     pygame.display.update()
     clock.tick(60)
